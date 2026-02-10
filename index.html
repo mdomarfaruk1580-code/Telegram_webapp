@@ -1,79 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Omar App Store</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-body{
-    font-family: Arial, sans-serif;
-    margin:0;
-    background:#f4f4f4;
-}
-.header{
-    background:#0088cc;
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-size:22px;
-}
-.app{
-    background:white;
-    margin:15px;
-    padding:15px;
-    border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-.app h3{
-    margin:0;
-}
-.app p{
-    color:gray;
-    font-size:14px;
-}
-button{
-    background:#0088cc;
-    color:white;
-    border:none;
-    padding:8px 15px;
-    border-radius:6px;
-    margin-top:10px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="header">📱 Omar Mini App Store</div>
-
-<div class="app">
-    <h3>🎵 Music Player App</h3>
-    <p>Simple audio player for Android</p>
-    <button onclick="downloadApp('Music Player')">Download</button>
-</div>
-
-<div class="app">
-    <h3>📦 Easy Order App</h3>
-    <p>Order system for shop</p>
-    <button onclick="downloadApp('Easy Order')">Download</button>
-</div>
-
-<div class="app">
-    <h3>🛒 Shop Manager</h3>
-    <p>Manage your shop easily</p>
-    <button onclick="downloadApp('Shop Manager')">Download</button>
-</div>
-
 <script>
 let tg = window.Telegram.WebApp;
 tg.expand();
 
-function downloadApp(appname){
-    tg.sendData("User wants to download: " + appname);
-}
-</script>
+fetch("https://raw.githubusercontent.com/mdomarfaruk1580-code/Telegram_webapp/main/Apps.json")
+.then(res => res.json())
+.then(apps => {
+    let container = document.getElementById("apps");
 
-</body>
-</html>
+    apps.forEach(app => {
+        container.innerHTML += `
+        <div class="app">
+            <img src="${app.icon}" width="50">
+            <h3>${app.name}</h3>
+            <p>${app.description}</p>
+            <a href="${app.download}" target="_blank">
+                <button>Download</button>
+            </a>
+        </div>`;
+    });
+});
+</script>
