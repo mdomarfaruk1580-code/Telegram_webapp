@@ -4,5 +4,11 @@
     "description": "MicroG latest version for Android",
     "icon": "https://cdn-icons-png.flaticon.com/512/888/888857.png",
     "download": "https://github.com/mdomarfaruk1580-code/Telegram_webapp/releases/download/V1/MicroG.New_v0.3.1.3.240913.apk"
+  },
+  {
+    "name": "TeraBox Premium",
+    "description": "TeraBox premium unlocked version",
+    "icon": "https://cdn-icons-png.flaticon.com/512/5968/5968705.png",
+    "download": "https://github.com/mdomarfaruk1580-code/Telegram_webapp/releases/download/V2/TeraBox-New_v4.10.4.apk"
   }
 ]
