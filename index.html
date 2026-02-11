@@ -29,13 +29,6 @@ body{
     width:60px;
     height:60px;
 }
-.app h3{
-    margin:10px 0 5px 0;
-}
-.app p{
-    color:gray;
-    font-size:14px;
-}
 button{
     background:#0088cc;
     color:white;
@@ -43,7 +36,6 @@ button{
     padding:8px 15px;
     border-radius:6px;
     margin-top:10px;
-    cursor:pointer;
 }
 </style>
 </head>
@@ -51,29 +43,23 @@ button{
 <body>
 
 <div class="header">📱 Omar Mini App Store</div>
-
-<div id="appContainer"></div>
+<div id="apps"></div>
 
 <script>
-fetch('apps.json')
+fetch("Apps.json")
 .then(res => res.json())
-.then(apps => {
-    const container = document.getElementById('appContainer');
-
-    apps.forEach(app => {
-        const div = document.createElement('div');
-        div.className = 'app';
-
-        div.innerHTML = `
+.then(data => {
+    let container = document.getElementById("apps");
+    data.forEach(app => {
+        container.innerHTML += `
+        <div class="app">
             <img src="${app.icon}">
             <h3>${app.name}</h3>
             <p>${app.description}</p>
-            <button onclick="window.location.href='${app.download}'">
-                Download
-            </button>
-        `;
-
-        container.appendChild(div);
+            <a href="${app.download}">
+                <button>Download</button>
+            </a>
+        </div>`;
     });
 });
 </script>
