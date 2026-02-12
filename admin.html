@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Omar App Store</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f4f4;
+    padding:20px;
+}
+h2{
+    text-align:center;
+}
+input, select{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+button{
+    width:100%;
+    padding:12px;
+    background:#0088cc;
+    color:white;
+    border:none;
+    border-radius:6px;
+    font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>➕ Add New App</h2>
+
+<input id="name" placeholder="App Name">
+<input id="desc" placeholder="Description">
+<input id="version" placeholder="Version">
+<input id="icon" placeholder="Icon Image Raw URL">
+<input id="download" placeholder="APK Download Link">
+
+<select id="category">
+  <option value="video">Video Editor</option>
+  <option value="photo">Photo Editor</option>
+  <option value="tools">Tools</option>
+  <option value="games">Games/Fun</option>
+</select>
+
+<button onclick="addApp()">Add App</button>
+
+<script>
+// তোমার Firebase config এখানে বসবে
+const firebaseConfig = {
+  apiKey: "PASTE_API_KEY",
+  authDomain: "PASTE_AUTH_DOMAIN",
+  databaseURL: "PASTE_DATABASE_URL",
+  projectId: "PASTE_PROJECT_ID",
+  storageBucket: "PASTE_BUCKET",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function addApp(){
+    const appData = {
+        name: name.value,
+        description: desc.value,
+        version: version.value,
+        icon: icon.value,
+        download: download.value,
+        category: category.value
+    };
+
+    db.ref("apps").push(appData).then(()=>{
+        alert("✅ App Added Successfully");
+        document.querySelectorAll("input").forEach(i=>i.value="");
+    });
+}
+</script>
+
+</body>
+</html>
