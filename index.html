@@ -38,9 +38,9 @@ input,select{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px s
 <div id="adminPanel">
   <h3>Add New App</h3>
   <input id="name" placeholder="App Name">
-  <input id="icon" placeholder="Icon URL">
+  <input id="icon" placeholder="Icon URL (raw png)">
   <input id="version" placeholder="Version">
-  <input id="link" placeholder="Download Link">
+  <input id="download" placeholder="APK Download Link">
   <select id="category">
     <option>Tools</option>
     <option>Video</option>
@@ -51,7 +51,7 @@ input,select{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px s
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, push, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDwNphDJaRHpbKRBTlHshrKOqAAseNoBug",
@@ -67,34 +67,27 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const appsRef = ref(db,"apps");
+const adminPassRef = ref(db,"admin/password");
 const container = document.getElementById("apps");
 
-window.showAdmin = function(){
-  const pass = prompt("Enter admin password:");
-  if(pass==="1234"){
-    document.getElementById("adminPanel").style.display="block";
+let cachedData = {};
+
+// 🔹 Load apps realtime
+onValue(appsRef,(snap)=>{
+  if(snap.exists()){
+    cachedData = snap.val();
+    renderApps();
   }
-}
+});
 
-window.addApp = function(){
-  const appData = {
-    name: name.value,
-    icon: icon.value,
-    version: version.value,
-    link: link.value,
-    category: category.value
-  };
-  push(appsRef, appData);
-  alert("App Added!");
-}
-
-function renderApps(data){
+// 🔹 Render apps with search & filter
+function renderApps(){
   container.innerHTML="";
   const search = document.getElementById("search").value.toLowerCase();
   const cat = document.getElementById("categoryFilter").value;
 
-  for(const key in data){
-    const a = data[key];
+  for(const key in cachedData){
+    const a = cachedData[key];
     if(a.name.toLowerCase().includes(search) &&
       (cat==="" || a.category===cat)){
         container.innerHTML+=`
@@ -103,7 +96,7 @@ function renderApps(data){
           <h3>${a.name}</h3>
           <p>Version: ${a.version}</p>
           <p>Category: ${a.category}</p>
-          <a href="${a.link}" target="_blank">
+          <a href="${a.download}" target="_blank">
             <button class="btn">Download</button>
           </a>
         </div>`;
@@ -111,19 +104,32 @@ function renderApps(data){
   }
 }
 
-onValue(appsRef,(snap)=>{
-  if(snap.exists()){
-    renderApps(snap.val());
+document.getElementById("search").addEventListener("keyup",renderApps);
+document.getElementById("categoryFilter").addEventListener("change",renderApps);
+
+// 🔐 Admin Login from Firebase password
+window.showAdmin = async function(){
+  const inputPass = prompt("Enter admin password:");
+  const snap = await get(adminPassRef);
+  if(snap.exists() && inputPass === snap.val()){
+    document.getElementById("adminPanel").style.display="block";
+  } else {
+    alert("Wrong Password!");
   }
-});
+}
 
-document.getElementById("search").addEventListener("keyup",()=>renderApps(window.cachedData||{}));
-document.getElementById("categoryFilter").addEventListener("change",()=>renderApps(window.cachedData||{}));
-
-onValue(appsRef,(snap)=>{
-  window.cachedData = snap.val();
-  renderApps(window.cachedData);
-});
+// ➕ Add App
+window.addApp = function(){
+  const appData = {
+    name: name.value,
+    icon: icon.value,
+    version: version.value,
+    download: download.value,
+    category: category.value
+  };
+  push(appsRef, appData);
+  alert("App Added Successfully!");
+}
 </script>
 
 </body>
