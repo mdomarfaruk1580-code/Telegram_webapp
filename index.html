@@ -1,101 +1,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Omar Mini App Store</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="UTF-8" />
+  <title>Omar Mini App Store</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<style>
-body{
-    font-family: Arial;
-    margin:0;
-    background:#f2f2f2;
-}
-.header{
-    background:#0088cc;
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-size:22px;
-}
-.search{
-    margin:10px;
-    text-align:center;
-}
-.search input{
-    width:90%;
-    padding:8px;
-    border-radius:6px;
-    border:1px solid #ccc;
-}
-.app{
-    background:white;
-    margin:15px;
-    padding:15px;
-    border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-.app img{
-    width:60px;
-}
-.version{
-    color:green;
-    font-size:13px;
-}
-button{
-    background:#0088cc;
-    color:white;
-    border:none;
-    padding:8px 15px;
-    border-radius:6px;
-    margin-top:10px;
-}
-</style>
+  <style>
+    body{font-family:Arial;background:#f2f2f2;margin:0}
+    header{background:#0d6efd;color:#fff;padding:15px;text-align:center;font-size:22px}
+    .search{padding:10px}
+    input,select{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
+    .app-card{background:#fff;margin:10px;padding:12px;border-radius:10px;box-shadow:0 2px 5px #ccc}
+    .app-card img{width:60px;height:60px}
+    .btn{background:#0d6efd;color:#fff;padding:8px 12px;border:none;border-radius:6px}
+    #adminPanel{display:none;background:#fff;padding:10px;margin:10px;border-radius:10px}
+  </style>
 </head>
 
 <body>
 
-<div class="header">📱 Omar Mini App Store</div>
+<header>📱 Omar Mini App Store</header>
 
 <div class="search">
-    <input type="text" id="searchBox" placeholder="Search app..." onkeyup="searchApp()">
+  <input type="text" id="search" placeholder="Search app..." onkeyup="loadApps()"/>
+  <select id="categoryFilter" onchange="loadApps()">
+    <option value="">All Category</option>
+    <option>Tools</option>
+    <option>Video</option>
+    <option>Storage</option>
+  </select>
+  <button class="btn" onclick="showAdmin()">Admin Login</button>
 </div>
 
-<div id="appList"></div>
+<div id="apps"></div>
 
-<script>
-let tg = window.Telegram.WebApp;
-tg.expand();
+<!-- Admin Panel -->
+<div id="adminPanel">
+  <h3>Add New App</h3>
+  <input id="name" placeholder="App Name">
+  <input id="icon" placeholder="Icon URL">
+  <input id="version" placeholder="Version">
+  <input id="link" placeholder="Download Link">
+  <select id="category">
+    <option>Tools</option>
+    <option>Video</option>
+    <option>Storage</option>
+  </select>
+  <button class="btn" onclick="addApp()">Add App</button>
+</div>
 
-fetch("apps.json")
-.then(res => res.json())
-.then(data => {
-    let container = document.getElementById("appList");
-    data.forEach(app => {
-        container.innerHTML += `
-        <div class="app">
-            <img src="${app.icon}">
-            <h3>${app.name}</h3>
-            <p>${app.description}</p>
-            <p class="version">Version: ${app.version}</p>
-            <button onclick="downloadApp('${app.download}')">Download</button>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDwNphDJaRHpbKRBTlHshrKOqAAseNoBug",
+  authDomain: "omarappstore-fa8c6.firebaseapp.com",
+  databaseURL: "https://omarappstore-fa8c6-default-rtdb.firebaseio.com",
+  projectId: "omarappstore-fa8c6",
+  storageBucket: "omarappstore-fa8c6.firebasestorage.app",
+  messagingSenderId: "300274754401",
+  appId: "1:300274754401:web:111028e68d167ba4de5b20"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.showAdmin = function(){
+  const pass = prompt("Enter admin password:");
+  if(pass==="1234"){   // change later
+    document.getElementById("adminPanel").style.display="block";
+  }
+}
+
+window.addApp = function(){
+  const appData = {
+    name: name.value,
+    icon: icon.value,
+    version: version.value,
+    link: link.value,
+    category: category.value
+  };
+  push(ref(db,"apps"),appData);
+  alert("App Added!");
+}
+
+window.loadApps = function(){
+  const container = document.getElementById("apps");
+  container.innerHTML="";
+  const search = document.getElementById("search").value.toLowerCase();
+  const cat = document.getElementById("categoryFilter").value;
+
+  onValue(ref(db,"apps"),snap=>{
+    container.innerHTML="";
+    snap.forEach(data=>{
+      const a = data.val();
+      if((a.name.toLowerCase().includes(search)) &&
+         (cat==="" || a.category===cat)){
+        container.innerHTML+=`
+        <div class="app-card">
+          <img src="${a.icon}">
+          <h3>${a.name}</h3>
+          <p>Version: ${a.version}</p>
+          <p>Category: ${a.category}</p>
+          <a href="${a.link}"><button class="btn">Download</button></a>
         </div>`;
-    });
-});
-
-function downloadApp(link){
-    window.location.href = link;
+      }
+    })
+  });
 }
 
-function searchApp(){
-    let input = document.getElementById("searchBox").value.toLowerCase();
-    let apps = document.getElementsByClassName("app");
-    for(let i=0;i<apps.length;i++){
-        let name = apps[i].innerText.toLowerCase();
-        apps[i].style.display = name.includes(input) ? "block" : "none";
-    }
-}
+loadApps();
 </script>
 
 </body>
