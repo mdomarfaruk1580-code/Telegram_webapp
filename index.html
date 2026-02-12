@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Omar Mini App Store</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8" />
+<title>Omar Mini App Store</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    body{font-family:Arial;background:#f2f2f2;margin:0}
-    header{background:#0d6efd;color:#fff;padding:15px;text-align:center;font-size:22px}
-    .search{padding:10px}
-    input,select{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
-    .app-card{background:#fff;margin:10px;padding:12px;border-radius:10px;box-shadow:0 2px 5px #ccc}
-    .app-card img{width:60px;height:60px}
-    .btn{background:#0d6efd;color:#fff;padding:8px 12px;border:none;border-radius:6px}
-    #adminPanel{display:none;background:#fff;padding:10px;margin:10px;border-radius:10px}
-  </style>
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+header{background:#0d6efd;color:#fff;padding:15px;text-align:center;font-size:22px}
+.search{padding:10px}
+input,select{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
+.app-card{background:#fff;margin:10px;padding:12px;border-radius:10px;box-shadow:0 2px 5px #ccc}
+.app-card img{width:60px;height:60px}
+.btn{background:#0d6efd;color:#fff;padding:8px 12px;border:none;border-radius:6px}
+#adminPanel{display:none;background:#fff;padding:10px;margin:10px;border-radius:10px}
+</style>
 </head>
 
 <body>
@@ -22,8 +22,8 @@
 <header>📱 Omar Mini App Store</header>
 
 <div class="search">
-  <input type="text" id="search" placeholder="Search app..." onkeyup="loadApps()"/>
-  <select id="categoryFilter" onchange="loadApps()">
+  <input type="text" id="search" placeholder="Search app..." />
+  <select id="categoryFilter">
     <option value="">All Category</option>
     <option>Tools</option>
     <option>Video</option>
@@ -49,7 +49,6 @@
   <button class="btn" onclick="addApp()">Add App</button>
 </div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -57,7 +56,7 @@ import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebas
 const firebaseConfig = {
   apiKey: "AIzaSyDwNphDJaRHpbKRBTlHshrKOqAAseNoBug",
   authDomain: "omarappstore-fa8c6.firebaseapp.com",
-  databaseURL: "https://omarappstore-fa8c6-default-rtdb.firebaseio.com",
+  databaseURL: "https://omarappstore-fa8c6-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "omarappstore-fa8c6",
   storageBucket: "omarappstore-fa8c6.firebasestorage.app",
   messagingSenderId: "300274754401",
@@ -67,9 +66,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+const appsRef = ref(db,"apps");
+const container = document.getElementById("apps");
+
 window.showAdmin = function(){
   const pass = prompt("Enter admin password:");
-  if(pass==="1234"){   // change later
+  if(pass==="1234"){
     document.getElementById("adminPanel").style.display="block";
   }
 }
@@ -82,36 +84,46 @@ window.addApp = function(){
     link: link.value,
     category: category.value
   };
-  push(ref(db,"apps"),appData);
+  push(appsRef, appData);
   alert("App Added!");
 }
 
-window.loadApps = function(){
-  const container = document.getElementById("apps");
+function renderApps(data){
   container.innerHTML="";
   const search = document.getElementById("search").value.toLowerCase();
   const cat = document.getElementById("categoryFilter").value;
 
-  onValue(ref(db,"apps"),snap=>{
-    container.innerHTML="";
-    snap.forEach(data=>{
-      const a = data.val();
-      if((a.name.toLowerCase().includes(search)) &&
-         (cat==="" || a.category===cat)){
+  for(const key in data){
+    const a = data[key];
+    if(a.name.toLowerCase().includes(search) &&
+      (cat==="" || a.category===cat)){
         container.innerHTML+=`
         <div class="app-card">
           <img src="${a.icon}">
           <h3>${a.name}</h3>
           <p>Version: ${a.version}</p>
           <p>Category: ${a.category}</p>
-          <a href="${a.link}"><button class="btn">Download</button></a>
+          <a href="${a.link}" target="_blank">
+            <button class="btn">Download</button>
+          </a>
         </div>`;
-      }
-    })
-  });
+    }
+  }
 }
 
-loadApps();
+onValue(appsRef,(snap)=>{
+  if(snap.exists()){
+    renderApps(snap.val());
+  }
+});
+
+document.getElementById("search").addEventListener("keyup",()=>renderApps(window.cachedData||{}));
+document.getElementById("categoryFilter").addEventListener("change",()=>renderApps(window.cachedData||{}));
+
+onValue(appsRef,(snap)=>{
+  window.cachedData = snap.val();
+  renderApps(window.cachedData);
+});
 </script>
 
 </body>
