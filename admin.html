@@ -5,8 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Omar App Store</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+<!-- Firebase v10 Modular -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "PASTE_API_KEY",
+  authDomain: "PASTE_AUTH_DOMAIN",
+  databaseURL: "PASTE_DATABASE_URL",
+  projectId: "PASTE_PROJECT_ID",
+  storageBucket: "PASTE_BUCKET",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Login function
+window.login = function () {
+    const inputPass = document.getElementById("pass").value;
+
+    get(child(ref(db), "apps/admin/password")).then((snapshot) => {
+        if (snapshot.exists()) {
+            const realPass = snapshot.val();
+            if (inputPass === realPass) {
+                document.getElementById("loginBox").style.display = "none";
+                document.getElementById("adminPanel").style.display = "block";
+            } else {
+                alert("Wrong Password");
+            }
+        }
+    });
+};
+
+// Add App function
+window.addApp = function () {
+    const appData = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("desc").value,
+        version: document.getElementById("version").value,
+        icon: document.getElementById("icon").value,
+        download: document.getElementById("download").value,
+        category: document.getElementById("category").value
+    };
+
+    push(ref(db, "apps"), appData).then(() => {
+        alert("✅ App Added Successfully");
+        document.querySelectorAll("#adminPanel input").forEach(i => i.value = "");
+    });
+};
+</script>
 
 <style>
 body{
@@ -38,54 +88,32 @@ button{
 
 <body>
 
-<h2>➕ Add New App</h2>
+<!-- 🔐 Login Box -->
+<div id="loginBox">
+    <h2>🔐 Admin Login</h2>
+    <input type="password" id="pass" placeholder="Enter Password">
+    <button onclick="login()">Login</button>
+</div>
 
-<input id="name" placeholder="App Name">
-<input id="desc" placeholder="Description">
-<input id="version" placeholder="Version">
-<input id="icon" placeholder="Icon Image Raw URL">
-<input id="download" placeholder="APK Download Link">
+<!-- ➕ Admin Panel -->
+<div id="adminPanel" style="display:none;">
+    <h2>➕ Add New App</h2>
 
-<select id="category">
-  <option value="video">Video Editor</option>
-  <option value="photo">Photo Editor</option>
-  <option value="tools">Tools</option>
-  <option value="games">Games/Fun</option>
-</select>
+    <input id="name" placeholder="App Name">
+    <input id="desc" placeholder="Description">
+    <input id="version" placeholder="Version">
+    <input id="icon" placeholder="Icon Image Raw URL">
+    <input id="download" placeholder="APK Download Link">
 
-<button onclick="addApp()">Add App</button>
+    <select id="category">
+      <option value="video">Video Editor</option>
+      <option value="photo">Photo Editor</option>
+      <option value="tools">Tools</option>
+      <option value="games">Games/Fun</option>
+    </select>
 
-<script>
-// তোমার Firebase config এখানে বসবে
-const firebaseConfig = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE_AUTH_DOMAIN",
-  databaseURL: "PASTE_DATABASE_URL",
-  projectId: "PASTE_PROJECT_ID",
-  storageBucket: "PASTE_BUCKET",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-function addApp(){
-    const appData = {
-        name: name.value,
-        description: desc.value,
-        version: version.value,
-        icon: icon.value,
-        download: download.value,
-        category: category.value
-    };
-
-    db.ref("apps").push(appData).then(()=>{
-        alert("✅ App Added Successfully");
-        document.querySelectorAll("input").forEach(i=>i.value="");
-    });
-}
-</script>
+    <button onclick="addApp()">Add App</button>
+</div>
 
 </body>
 </html>
